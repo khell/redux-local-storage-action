@@ -1,0 +1,22 @@
+{
+  "name": "redux-local-storage-action",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "Cameron Yan",
+  "license": "MIT",
+  "dependencies": {
+    "redux": "^3.7.1"
+  },
+  "devDependencies": {
+    "@types/webpack-env": "^1.13.0",
+    "awesome-typescript-loader": "^3.2.1",
+    "typescript": "^2.4.1",
+    "uglify-js": "^3.0.23",
+    "uglifyjs-webpack-plugin": "^0.4.6",
+    "webpack": "^3.1.0"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "types": "dist/index.d.ts"
+}
