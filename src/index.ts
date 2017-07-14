@@ -1,27 +1,35 @@
 import { Action, Dispatch, Store } from 'redux';
 
-interface ISyncable {
+interface Syncable {
     id: number;
     action: Action;
     time: number;
 }
 
-export const createSyncActionMiddleware = (key: string, id: number) => <S>(store: Store<S>) => (next: Dispatch<Store<S>>) => (action: Action) => {
-    window.localStorage.setItem(key, JSON.stringify({
-        id,
-        action,
-        time: Date.now()
-    } as ISyncable));
+let listening = false;
 
-    let originId = id;
-    window.addEventListener('storage', (event: StorageEvent) => {
-        if (event.key === key && event.newValue) {
-            const { action, id } = JSON.parse(event.newValue) as ISyncable;
-            if (originId !== id) {
-                store.dispatch(action);
-            }
+export const createSyncActionMiddleware = <T>(key: string, originId: number, actionTypeWhitelist?: T[]) =>
+    <S>(store: Store<S>) => (next: Dispatch<Store<S>>) => (reduxAction: Action) => {
+        if (!actionTypeWhitelist || actionTypeWhitelist.length === 0 ||
+            actionTypeWhitelist.find(type => type === reduxAction.type)) {
+            window.localStorage.setItem(key, JSON.stringify({
+                id: originId,
+                action: reduxAction,
+                time: Date.now()
+            } as Syncable));
         }
-    });
 
-    next(action);
-}
+        if (!listening) {
+            window.addEventListener('storage', (event: StorageEvent) => {
+                if (event.key === key && event.newValue) {
+                    const { action, id } = JSON.parse(event.newValue) as Syncable;
+                    if (originId !== id) {
+                        store.dispatch(action);
+                    }
+                }
+            });
+            listening = true;
+        }
+
+        next(reduxAction);
+    };
