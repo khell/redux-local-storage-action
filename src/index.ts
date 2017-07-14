@@ -7,7 +7,6 @@ interface Syncable {
 }
 
 let listening = false;
-
 export const createSyncActionMiddleware = <T>(key: string, originId: number, actionTypeWhitelist?: T[]) =>
     <S>(store: Store<S>) => (next: Dispatch<Store<S>>) => (reduxAction: Action) => {
         if (!actionTypeWhitelist || actionTypeWhitelist.find(type => type === reduxAction.type)) {
@@ -19,23 +18,30 @@ export const createSyncActionMiddleware = <T>(key: string, originId: number, act
         }
 
         if (!listening) {
+            listening = true;
+
+            const dispatchIfForeign = (id: number, action: Action) => {
+                if (originId !== id) {
+                    store.dispatch(action);
+                }
+            };
+
             window.addEventListener('storage', (event: StorageEvent) => {
                 if (event.key === key && event.newValue) {
                     const { action, id } = JSON.parse(event.newValue) as Syncable;
-                    if (originId !== id) {
-                        store.dispatch(action);
-                    }
+                    dispatchIfForeign(id, action);
                 }
             });
 
             // If there is an action already here from before launch, force a new storage event
             let existingAction = window.localStorage.getItem(key);
             if (existingAction) {
-                window.localStorage.setItem(key, existingAction);
+                const { action, id } = JSON.parse(existingAction) as Syncable;
+                dispatchIfForeign(id, action);
             }
-            
-            listening = true;
         }
 
         next(reduxAction);
     };
+
+export default createSyncActionMiddleware;
