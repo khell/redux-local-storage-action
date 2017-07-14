@@ -10,8 +10,7 @@ let listening = false;
 
 export const createSyncActionMiddleware = <T>(key: string, originId: number, actionTypeWhitelist?: T[]) =>
     <S>(store: Store<S>) => (next: Dispatch<Store<S>>) => (reduxAction: Action) => {
-        if (!actionTypeWhitelist || actionTypeWhitelist.length === 0 ||
-            actionTypeWhitelist.find(type => type === reduxAction.type)) {
+        if (!actionTypeWhitelist || actionTypeWhitelist.find(type => type === reduxAction.type)) {
             window.localStorage.setItem(key, JSON.stringify({
                 id: originId,
                 action: reduxAction,
