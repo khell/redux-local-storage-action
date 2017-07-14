@@ -27,6 +27,13 @@ export const createSyncActionMiddleware = <T>(key: string, originId: number, act
                     }
                 }
             });
+
+            // If there is an action already here from before launch, force a new storage event
+            let existingAction = window.localStorage.getItem(key);
+            if (existingAction) {
+                window.localStorage.setItem(key, existingAction);
+            }
+            
             listening = true;
         }
 
